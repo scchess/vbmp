@@ -54,12 +54,12 @@ function(X1, X2, kName, kParams){
         r2  <- distSqrd(X1, X2);
         PHI <- 1./(1. + r2);
     } else if (kName == 'cubic') {         ##	Cube of distance
-        r2 <- eta * distSqrd(X1, X2);
+        r2 <- distSqrd(X1, X2);
         PHI <- r2 * sqrt(r2);
     } else if (kName == 'r') {             ##	Distance
-        PHI <- sqrt(eta) * sqrt(distSqrd(X1, X2));
+        PHI <- sqrt(distSqrd(X1, X2));
     } else if (kName == 'neighbour') {     ## Neighbourhood indicator
-        r2  <- eta * distSqrd(X1, X2);
+        r2  <- distSqrd(X1, X2);
         PHI <- ifelse(r2 < 1, 1, 0);
     } else if (kName == 'laplace'){        ##	Laplacian
         r2  <- distSqrd(X1, X2);

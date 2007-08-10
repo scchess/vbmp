@@ -146,9 +146,19 @@ predError(res);
 ## Leave-one-out (LOO) cross-validation prediction error of the probabilistic 
 ## Gaussian process classifier used in Zsofia Kote-Jarai et al. 
 ## Clin Cancer Res 2006;12(13);3896-3901
-  load(url("http://www.dcs.gla.ac.uk/people/personal/girolami/pubs_2005/VBGP/BRCA12.RData"));
-  brca.y <- as.numeric(BRCA12$y);
-  brca.x <- as.matrix(BRCA12[,-1]);
+
+  if(any(installed.packages()[,1]=="Biobase")) {
+    library("Biobase");
+    data("BRCA12");
+    brca.y <- BRCA12$Target.class;
+    brca.x <- t(exprs(BRCA12));
+  } else {
+    print("Deprecated.....");
+    load(url("http://www.dcs.gla.ac.uk/people/personal/girolami/pubs_2005/VBGP/BRCA12.RData"));
+    brca.y <- as.numeric(BRCA12$y);
+    brca.x <- as.matrix(BRCA12[,-1]);
+  }
+  
   sKernelType <- "iprod";  ## Covariance function type
   Thresh <- 1e-8;  ## Iteration threshold
   InfoLevel <- 1;

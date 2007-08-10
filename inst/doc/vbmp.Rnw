@@ -38,8 +38,9 @@ This software also incorporates feature weighting by means of Automatic
 Relevance Determination. \\
 For more detailed description of classification using multinomial-probit 
 regression model with Gaussian Process priors, refer to \citet{Girolami2006}.\\
-A synthetic toy dataset example is provided to illustrate the potential of
-the method.
+To illustrate the potential of the method, a couple of examples are presented 
+on a synthetic toy dataset and on literature data from the breast cancer 
+study by \citet{Kote-Jarai2006}
 %and on literature  data from breast cancer study \citet{Kote-Jarai2006}
 
 \section*{The \Rfunction{vbmp} function}
@@ -53,19 +54,24 @@ The target values \Rfunarg{t.class} and \Rfunarg{t.class.TEST} can be factors or
 integer values in 1:n where n is the number of classes.\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{The synthetic toy dataset}
-In this illustrative examle dataset is composed of uniformly distributed 2-D 
+In this illustrative example dataset is composed of uniformly distributed 2-D 
 data points drawn from 3 nonlinearly separable classes which take the form of 
 two annular rings and one zero-centered bivariate Gaussian with spherical 
 covariance matrix (see Fig.~\ref{fig:Example1}). 
 Four additional random noise parameters were added to the dataset\\
 Gaussian kernel functions were adopted with scale parameter inferred by the 
 \Rfunction{vbmp} method using vague hyperpriors (Gamma prior over covaraince params 
-defaults to $1e-6$). Monitor diagnostics are depicted in figure \ref{fig:ARD} 
+defaults to $10^{-6}$). Monitor diagnostics are depicted in figure \ref{fig:ARD} 
 where the progress of Automatic Relevance Detection (ARD) \citet{Neal1998} 
 is evident with the six  irrelevant features are effectively removed from the model.\\
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 <<example1, echo = TRUE>>=
-## function used to generate the dataset
+## Init random number generator
+set.seed(123); 
+@ 
+Define a function to generate the dataset:
+<<example11, echo = TRUE>>=
 genSample <- function(n, noiseVar=0) {
     KF <- 10; # magnify factor
     nt <- round(n/3,0)#
@@ -87,31 +93,36 @@ genSample <- function(n, noiseVar=0) {
     if (noiseVar>0) X <- cbind(X, matrix(rnorm(noiseVar*n), ncol=noiseVar, nrow=nrow(X)));
     structure( list( t.class=t.class, X=X), class="MultiNoisyData");
 }
-
-## Init random number generator
-set.seed(123); 
-
-## number of additional noisy input parameters
+@ 
+Set the number of additional noisy input parameters:
+<<example12, echo = TRUE>>=
 nNoisyInputs <- 4;       
-
-## sample sizes
+@ 
+Set the sample sizes:
+<<example13, echo = TRUE>>=
 Ntrain <- 100;  
 Ntest  <- Ntrain * 5;
-## Generate training and test samples independently 
+@ 
+Generate training and test samples independently: 
+<<example14, echo = TRUE>>=
 dataXtTrain <- genSample(Ntrain, nNoisyInputs);
 dataXtTest  <- genSample(Ntest,  nNoisyInputs);
-
+@ 
+Initialization of scale covariance function and of the maximum
+number of iteration:
+<<example15, echo = TRUE>>=
+theta <- rep(1., ncol(dataXtTrain$X));
+max.train.iter <- 12;
+@ 
+Train, test and plot monitors
+<<example16, echo = TRUE>>=
 library(vbmp);
-
-## initialization scale covariance function
-theta <- rep(1, ncol(dataXtTrain$X));
-
-## train and test, plot monitors
 res <- vbmp( dataXtTrain$X, dataXtTrain$t.class,
-        dataXtTest$X, dataXtTest$t.class, theta, 
-        control=list(bThetaEstimate = T,
-        bMonitor=T, maxIts=12)); 
-## print the out-of-sample prediction error
+             dataXtTest$X, dataXtTest$t.class, theta, 
+             control=list(bThetaEstimate=T, bMonitor=T, maxIts=max.train.iter)); 
+@ 
+Print the out-of-sample prediction error
+<<example17, echo = TRUE>>=
 predError(res);   
 @
 \begin{figure}
@@ -132,7 +143,7 @@ identified by different colors}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \begin{figure}
 \centering
-<<fig=TRUE,echo=TRUE,width=7,height=7>>=
+<<fig=TRUE,echo=TRUE,width=8,height=8>>=
 ## plot convergence diagnostics (same as setting bPlotFitting=T)
 plotDiagnostics(res);       
 @
@@ -143,5 +154,67 @@ accuracy ($0/1$-error loss)}
 \label{fig:ARD}
 \end{figure} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\newpage
+\section*{Breast cancer dataset}
+The dataset consist of 8080 genes and 30 samples from three classes of 
+individual with specific gene mutations. As reported in \citet{Kote-Jarai2006}
+using a linear inner product covariance function the Leave-One-Out error is 
+zero which improves on an SVM multiclass classifier adopted by 
+\citet{Kote-Jarai2006}. 
+<<example2, echo = TRUE>>=
+  library("Biobase");
+  data("BRCA12");
+  brca.y <- BRCA12$Target.class;
+  brca.x <- t(exprs(BRCA12));
+@  
+This function predicts the target class for LOOCV.
+It uses linear inner product covariance function and 24 training iterations.
+Set iteration threshold to $10^{-8}$, silent mode.
+Initialize all theta values to $1$ and, in this case, it is not necessarily to 
+run the importance sampler to obtain the weightings in the features.
+<<example21, echo = TRUE>>=
+  predictVBMP <- function(x) {
+      sKernelType <- "iprod";  
+      Thresh      <- 1e-8; 
+      InfoLevel   <- 1;
+      theta       <- rep(1.0, ncol(brca.x));
+      max.train.iter <- 24;
+      resX <- vbmp( brca.x[!x,], brca.y[!x], 
+                    brca.x[ x,], brca.y[ x], 
+                    theta,  control=list(bThetaEstimate=F, 
+                    bPlotFitting=F, maxIts=max.train.iter, 
+                    sKernelType=sKernelType, Thresh=Thresh));      
+      predClass(resX);
+  }
+@  
+<<example212, echo = FALSE>>=
+  # fake predictVBMP to speed-up the RCMD TEST
+  predictVBMP <- function(x) {
+      rep(0,sum(x));
+  }
+@  
+In the following cross validation code, \Robject{Kfold} is the number of folds, 
+it is set equal to \Robject{n}, the number of pts in the dataset, in order to 
+obtain the Leave-One-Out approach. \Robject{res} collects the predicted targets. 
+<<example22, echo = TRUE>>=
+  n     <- nrow(brca.x);
+  Kfold <- n; # number of folds , if equal to n then LOO
+  samps <- sample(rep(1:Kfold, length=n), n, replace=FALSE); 
+  res   <- rep(NA, n);
+  print(paste("Crossvalidation started...... (",n,"steps )"));
+  for (x in 1:Kfold) {
+      cat(paste(x,", ",ifelse(x%%10==0,"\n",""),sep="")); 
+      flush.console();
+      res[samps==x] <- predictVBMP(samps==x); 
+  }
+  cat("(end)");
+@
+The Cross-validated error rate can be finally evaluated:
+<<example23, echo = TRUE>>=
+    CVerrorRate <- round(sum(res!=brca.y)/n,2);
+  # don't print out the results, owing to the fake predictVBMP
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliography{vbmp}
 \end{document}
