@@ -45,7 +45,7 @@ study by \citet{Kote-Jarai2006}
 
 \section*{The \Rfunction{vbmp} function}
 The \Rfunction{vbmp} function carries out multi-class classification training and
-testing.  The list \Rfunarg{control} parameter list provides optional control settings.
+testing.  The \Rfunarg{control} parameter list provides optional control settings.
 The default Gaussian Process covariance functions are radial basis-style 
 functions but other choice are possible.
 Whether or not to infer the scale parameter of the covariance functions 
@@ -63,7 +63,7 @@ Gaussian kernel functions were adopted with scale parameter inferred by the
 \Rfunction{vbmp} method using vague hyperpriors (Gamma prior over covaraince params 
 defaults to $10^{-6}$). Monitor diagnostics are depicted in figure \ref{fig:ARD} 
 where the progress of Automatic Relevance Detection (ARD) \citet{Neal1998} 
-is evident with the six  irrelevant features are effectively removed from the model.\\
+is evident with the four irrelevant features are effectively removed from the model.\\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 <<example1, echo = TRUE>>=
@@ -109,7 +109,7 @@ dataXtTrain <- genSample(Ntrain, nNoisyInputs);
 dataXtTest  <- genSample(Ntest,  nNoisyInputs);
 @ 
 Initialization of scale covariance function and of the maximum
-number of iteration:
+number of iterations:
 <<example15, echo = TRUE>>=
 theta <- rep(1., ncol(dataXtTrain$X));
 max.train.iter <- 12;
@@ -147,7 +147,7 @@ identified by different colors}
 ## plot convergence diagnostics (same as setting bPlotFitting=T)
 plotDiagnostics(res);       
 @
-\caption{ Monitor diagnostics for the evolution of: posterior means for the 
+\caption{Monitor diagnostics for the evolution of: posterior means for the 
 Gaussian kernel scale parameters (top-left), lower bound on the marginal 
 likelihood (top-right), predictive likelihood (bottom-left) and out-of-sample 
 accuracy ($0/1$-error loss)}
@@ -167,16 +167,15 @@ zero which improves on an SVM multiclass classifier adopted by
   brca.y <- BRCA12$Target.class;
   brca.x <- t(exprs(BRCA12));
 @  
-This function predicts the target class for LOOCV.
-It uses linear inner product covariance function and 24 training iterations.
-Set iteration threshold to $10^{-8}$, silent mode.
+Define a function to set up the target class predictor during cross-validation.
+It uses linear inner product covariance function and 24 training iterations and 
+sets iteration threshold to $10^{-8}$.
 Initialize all theta values to $1$ and, in this case, it is not necessarily to 
 run the importance sampler to obtain the weightings in the features.
 <<example21, echo = TRUE>>=
   predictVBMP <- function(x) {
       sKernelType <- "iprod";  
       Thresh      <- 1e-8; 
-      InfoLevel   <- 1;
       theta       <- rep(1.0, ncol(brca.x));
       max.train.iter <- 24;
       resX <- vbmp( brca.x[!x,], brca.y[!x], 
@@ -193,7 +192,7 @@ run the importance sampler to obtain the weightings in the features.
       rep(0,sum(x));
   }
 @  
-In the following cross validation code, \Robject{Kfold} is the number of folds, 
+In the following code, \Robject{Kfold} is the number of cross validation folds and 
 it is set equal to \Robject{n}, the number of pts in the dataset, in order to 
 obtain the Leave-One-Out approach. \Robject{res} collects the predicted targets. 
 <<example22, echo = TRUE>>=
@@ -207,7 +206,6 @@ obtain the Leave-One-Out approach. \Robject{res} collects the predicted targets.
       flush.console();
       res[samps==x] <- predictVBMP(samps==x); 
   }
-  cat("(end)");
 @
 The Cross-validated error rate can be finally evaluated:
 <<example23, echo = TRUE>>=
