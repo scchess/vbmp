@@ -3,7 +3,7 @@
 
 \title{ VBMP Lower bound estimate }
 \description{
- Retruns the lower bound estimates for the VBMP fitted model.
+ Returns the lower bound estimates for the VBMP fitted model.
 }
 \usage{
 lowerBound(obj)

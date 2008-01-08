@@ -1,10 +1,10 @@
 `plotDiagnostics` <-
 function(obj) {
-   if (nrow(obj$theta) > 1)  {
+   if (nrow(obj$THETA) > 1)  {
       par(mfrow=c(2, 2));
       ## plot covariance parameters evolution
-      scov <- matrix(as.numeric(safeLog(obj$theta)), ncol=ncol(obj$theta), 
-         nrow=nrow(obj$theta));
+      scov <- matrix(as.numeric(safeLog(obj$THETA)), ncol=ncol(obj$THETA), 
+         nrow=nrow(obj$THETA));
       plot(NULL, type="n", xlim=c(1,nrow(scov)), xlab="Iteration",
          main="Covariance Parameters",
          ylim=c(min(scov)-1e-6, max(scov)+1e-6), ylab="log(theta)");

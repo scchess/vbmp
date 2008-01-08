@@ -3,7 +3,7 @@
 
 \title{ VBMP predictive likelihood estimate }
 \description{
- Retruns the predictive likelihood estimate for the VBMP fitted model.
+ Returns the predictive likelihood estimate for the VBMP fitted model.
 }
 \usage{            
 predLik(obj)

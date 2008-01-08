@@ -78,8 +78,8 @@ An object of class "VBMP.obj" is a list containing at least the following compon
 
 \references{ 
  Girolami M, Rogers S, \emph{Variational Bayesian Multinomial Probit Regression with Gaussian Process Priors}, Neural Computation 18, 1790-1817 (2006).
- 
- \url{http://www.dcs.gla.ac.uk/~girolami}
+ Lama N, Girolami M \emph{vbmp: Variational Bayesian Multinomial Probit Regression for multi-class classification in R}, Bioinformatics 24(1):135-136 (2008). 
+ \url{http://bioinformatics.oxfordjournals.org/cgi/content/short/btm535v1}
  }
 \author{ N Lama \email{nicola.lama@unina2.it}, MA Girolami \email{girolami@dcs.gla.ac.uk} }
 %\note{ ~~further notes~~ 
@@ -112,7 +112,7 @@ genSample <- function(n, noiseVar=0) {
     structure( list( t.class=t.class, X=X), class="MultiNoisyData");
 }
 
-set.seed(100); ## Init random number generator
+set.seed(123); ## Init random number generator
 
 ## Generate training and test samples as an independent 
 ## test set to assess out-of-sample prediction error 
@@ -192,7 +192,8 @@ predError(res);
 %      bThetaEstimate=T, maxIts=100));
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\seealso{ See Also as \code{\link{lowerBound}}, \code{\link{predError}}, 
+\seealso{ See Also as \code{link{predictCPP}}, \code{link{covParams}}, 
+ \code{\link{lowerBound}}, \code{\link{predError}}, 
  \code{\link{predLik}}, \code{\link{predClass}}}
 
 \keyword{ models }

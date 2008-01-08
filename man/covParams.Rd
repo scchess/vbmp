@@ -3,7 +3,7 @@
 
 \title{ VBMP covariance functions parameters }
 \description{
- Retruns the value of the covariance functions parameters (theta).
+ Returns the value of the covariance functions parameters (theta).
 }
 \usage{
 covParams(obj)

@@ -1,1 +1,1 @@
-export(vbmp, predError, predLik, predClass, covParams, plotDiagnostics)
+export(vbmp, predictCPP, predError, predLik, predClass, covParams, plotDiagnostics)
