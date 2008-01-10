@@ -2,11 +2,18 @@
 function(obj, X.TEST=NULL) {
    ## Computes the predictive posteriors as defined in Section 4.5 of the paper.
    ## first two equations at page 1798
-   con <- list(InfoLevel=0, sFILE.TRACE=NULL, bThetaEstimate=FALSE,
-        sKernelType="gauss", maxIts=50, Thresh=1e-4, tmpSave=NULL,
-        nSampsTG=1000, nSampsIS=1000, nSmallNo=1e-10, parGammaSigma=1e-6,
-        parGammaTau=1e-6, bPlotFitting=FALSE);
+   con <- list(InfoLevel=0, sFILE.TRACE=NULL, bThetaEstimate=FALSE, 
+        sKernelType="gauss", maxIts=50, Thresh=1e-4, tmpSave=NULL, nNodesQuad=49,
+        nSampsTG=1000, nSampsIS=1000, nSmallNo=1e-10, parGammaSigma=1e-6, 
+        parGammaTau=1e-6, bMonitor=FALSE, bPlotFitting=FALSE, method="quadrature");
    con[names(obj$con)] <- obj$con;
+   if (con$method == "quadrature") {
+      Nsamps  <- con$nNodesQuad;   
+      genCPP  <- genCPP.quad;
+   } else {
+      Nsamps  <- con$nSampsTG;      
+      genCPP  <- genCPP.classic;
+   }
    X  <- obj$X;
    if (length(X.TEST)==0) X.TEST <- X;
    Y <- obj$Y;
@@ -20,23 +27,11 @@ function(obj, X.TEST=NULL) {
    PHItestSelf <- computeKernel(X.TEST, X.TEST, con$sKernelType, theta);
    Res <- t(crossprod(Y, invPHI)%*%PHItest);
    S <- (diag(PHItestSelf) - diag(crossprod(PHItest, invPHI)%*%PHItest));
-   predictive.likelihood <- 0.;
-   if (Kc > 2) {
-      Ptest <- matrix(1., nrow=Ntest, ncol=Kc);
-      u     <- rnorm(con$nSampsTG);
-      for (n in 1:Ntest) {
-         for (i in 1:Kc) {
-            pp <- rep(1., con$nSampsTG);
-            for (j in ((1:Kc)[-i])) {
-               pp <- pp * safeNormCDF(u + (Res[n, i] - Res[n, j])/(sqrt(1.+S[n])));
-            }
-            Ptest[n, i] <- mean(pp);
-         }
-      }
+   if (Kc > 2) { 
+      Ptest <- genCPP(Ntest, Kc, Nsamps, Res, S);
    } else {
       stop("Multinomial only code....")
    }
-   Ptest <- t(apply(Ptest, 1, function(x) {x/sum(x)})); ## JUST IN CASE
    Ptest;
 }
 

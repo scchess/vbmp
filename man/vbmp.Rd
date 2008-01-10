@@ -40,6 +40,9 @@ vbmp(X, t.class, X.TEST, t.class.TEST, theta, control = list())
      Defaults to 50.}
   \item{Thresh}{Convergence threshold on marginal likelihood lowerbound. 
      Defaults to 1e-4.}
+  \item{method}{Integral computation method: "quadrature" (Gaussian quadrature)
+     or "classic"(simple sampler).  Defaults to "quadrature".}     
+  \item{nNodesQuad}{Number of nodes used for quadrature. Defaults to 49.}     
   \item{nSampsTG}{Number of samples used in obtaining mean of truncated 
      Gaussian. Defaults to 1000.}
   \item{nSampsIS}{Number of samples used in the importance sampler. 
@@ -192,7 +195,7 @@ predError(res);
 %      bThetaEstimate=T, maxIts=100));
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\seealso{ See Also as \code{link{predictCPP}}, \code{link{covParams}}, 
+\seealso{ See Also as \code{\link{predictCPP}}, \code{\link{covParams}}, 
  \code{\link{lowerBound}}, \code{\link{predError}}, 
  \code{\link{predLik}}, \code{\link{predClass}}}
 

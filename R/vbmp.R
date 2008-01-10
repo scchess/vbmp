@@ -19,9 +19,9 @@ function(X, t.class, X.TEST, t.class.TEST, theta,  control = list()) {
 
     # ------------ check parameters    
     con <- list(InfoLevel=0, sFILE.TRACE=NULL, bThetaEstimate=FALSE, 
-        sKernelType="gauss", maxIts=50, Thresh=1e-4, tmpSave=NULL,
+        sKernelType="gauss", maxIts=50, Thresh=1e-4, tmpSave=NULL, nNodesQuad=49,
         nSampsTG=1000, nSampsIS=1000, nSmallNo=1e-10, parGammaSigma=1e-6, 
-        parGammaTau=1e-6, bMonitor=FALSE, bPlotFitting=FALSE);
+        parGammaTau=1e-6, bMonitor=FALSE, bPlotFitting=FALSE, method="quadrature");
     con[names(control)] <- control;
     if (con$bPlotFitting) con$bMonitor <- TRUE;
     if (is.factor(t.class) || is.character(t.class)){
@@ -76,6 +76,16 @@ function(X, t.class, X.TEST, t.class.TEST, theta,  control = list()) {
     ## -------------------------------------------------------------------------
     its     <- 0;         ## Initiliase iteration number
     bconverged <- FALSE;
+    tmean.scan <- NULL;
+    if (con$method == "quadrature") {
+      tmean   <- tmean.quad;
+      Nsamps  <- con$nNodesQuad;   
+      genCPP  <- genCPP.quad;
+    } else {
+      tmean   <- tmean.classic;
+      Nsamps  <- con$nSampsTG;      
+      genCPP  <- genCPP.classic;
+    }
     while ((its < con$maxIts) && (! bconverged)) {
         its <- its + 1;
         printTrace(paste(its, "> update the columns of the M-matrix ",
@@ -86,8 +96,9 @@ function(X, t.class, X.TEST, t.class.TEST, theta,  control = list()) {
             "- equation (5) & (6) of the paper "), con$sFILE.TRACE, con$InfoLevel - 1);
         scan.lower.bound <- 0.;
         scan.tm <- NULL;
+
         for (n in 1:N) {
-            scan.tm <- tmean(M[n,], t.class[n], con$nSampsTG);
+            scan.tm <- tmean.quad(M[n,], t.class[n], Nsamps);
             if (! is.null(scan.tm)) {
                 Y[n,] <- scan.tm$tm;
                 scan.lower.bound <- scan.lower.bound + safeLog(scan.tm$z);
@@ -159,25 +170,13 @@ function(X, t.class, X.TEST, t.class.TEST, theta,  control = list()) {
             ## Computes the predictive posteriors as defined in Section 4.5 of the paper.
             ## first two equations at page 1798
             Res <- t(crossprod(Y, invPHI)%*%PHItest);
-            S <- (diag(PHItestSelf) - diag(crossprod(PHItest, invPHI)%*%PHItest));
+            S <- (diag(PHItestSelf) - diag(crossprod(PHItest, invPHI)%*%PHItest));             
             predictive.likelihood <- 0.;
             if (Kc > 2) {
-                Ptest <- matrix(1., nrow=Ntest, ncol=Kc);
-                u     <- rnorm(con$nSampsTG);
-                for (n in 1:Ntest) {
-                    for (i in 1:Kc) {
-                        pp <- rep(1., con$nSampsTG);
-                        for (j in ((1:Kc)[-i])) {
-                            pp <- pp * safeNormCDF(u + (Res[n, i] -
-                                Res[n, j])/(sqrt(1.+S[n])));
-                        }
-                        Ptest[n, i] <- mean(pp);
-                    }
-                }
+                Ptest <-  genCPP(Ntest, Kc, Nsamps, Res, S);
             } else {
                 stop("Multinomial only code....")
-            }
-            Ptest <- t(apply(Ptest, 1, function(x) {x/sum(x)})); ## JUST IN CASE
+            }            
             ## Computes the overall predictive likelihood
             predictive.likelihood <- sum(safeLog( apply(cbind(Ptest,
                 t.class.TEST), 1, function(s){s[s[Kc+1]]} )));
