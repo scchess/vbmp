@@ -24,7 +24,9 @@ vbmp(X, t.class, X.TEST, t.class.TEST, theta, control = list())
  Compute the predictive posteriors on the test set and the associated likelihood 
  and test errors at each iteration.
 
- The control argument is a list that can supply any of the following components:
+ The control argument is a list that can supply any of the following
+ components:
+\describe{
   \item{InfoLevel}{ 0 to suppress tracing ( > 0  to print different levels
           of monitoring information) }
   \item{sFILE.TRACE}{ File name where to redirect output (default NULL) }
@@ -57,6 +59,7 @@ vbmp(X, t.class, X.TEST, t.class.TEST, theta, control = list())
       during model estimation (if TRUE it forces bMonitor to TRUE). Defaults to FALSE.}
  }
 
+}
 
 \value{
 \code{vbmp} returns an object of class "VBMP.obj". 
