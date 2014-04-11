@@ -1,7 +1,7 @@
 Package: vbmp
 Type: Package
 Title: Variational Bayesian Multinomial Probit Regression
-Version: 1.31.2
+Version: 1.32.0
 Author: Nicola Lama <nicola.lama@unina2.it>, Mark Girolami
         <girolami@dcs.gla.ac.uk>
 Maintainer: Nicola Lama <nicola.lama@unina2.it>
